@@ -1,0 +1,101 @@
+-- INSTALLATION  / GENERAL --
+
+- Need to sign drivers when UEFI Secure Boot enabled. Binaries loaded at boot (e.g. drivers) are
+validated against keys located in firmware. Most x86 hardware is preloaded with Microsoft keys,
+users can add their	own custom keys as well. Had to do this to get VBox to work.
+
+- Kernel - program at the core of an OS, in a separate mem area called "kernel space" - as opposed
+to "user space" where the rest of the programs reside. Facilitates interaction between software and
+hardware, manages resource allocation. "System Call" - when a process requests a service from the Kernel.
+
+- x86 - Family of instruction set architectures based on *86 intel microprocessors. "Instruction Set
+Architecture (ISA)" - defines the behavior of machine code -> e.g. instructions, data types. A device
+that follows an instruction set is called an "implementation". This is why I can upgrade from Ryzen3900x
+ to i7-12700k without issues - both follow same ISA.
+
+- PATH - A user's PATH consists of a series of colon-separated absolute paths that are stored in plain
+text files. Whenever a user types in a command at the command line that is not built into the shell or
+that does not include its absolute path and then presses the Enter key, the shell searches through
+those directories, which constitute the user's search path, until it finds an executable file with that
+name.
+
+- Daemons - Background programs that take care of some subsystem / functionality, e.g. printing, networking.
+Windows equivalent is services.
+
+ -- SUDO --
+
+- Shorthand for "substitute user & do" or "superuser do". Allows us to execute commands as root without
+having to "su -l" every single time.
+
+- Configuring sudo -> Can either edit /etc/sudoers file or create a new file in /etc/sudoers.d/. "sudo visudo".
+sudo -k -> Log out of sudo
+Defaults passwd_tries=n -> Number of times you can retry entering passwrd.
+Defaults badpass_message="custommessage" -> Set custom wrong pw message.
+Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin -> Prevent potentially compromised PATHs being used.
+Defaults requiretty -> Sudo can only be used from a logged in terminal session - not by web-plugins, daemons.
+Defaults log_output, log_input -> Log both sudo inputs and outputs.
+Defaults iolog_dir=<path>
+
+-- USERGROUP MANAGEMENT --
+
+- Create new user -> sudo adduser <username>
+- Create new group -> sudo addgroup <groupname>
+- Add user to group -> sudo adduser <username> <groupname>
+- Rem user from group -> sudo deluser <username> <groupname>
+- Get database entry pertaining to user / group -> getent <dbname> <name>
+
+-- HOSTNAME MANAGEMENT --
+
+- Change hostname -> hostname <newhostname>
+- Permanently change hostname -> Edit /etc/hostname and /etc/hosts files.
+- Apply changes without rebooting -> sudo /etc/init.d/hostname.sh start
+
+-- Logical Volume Manager (LVM) --
+ - Physical volume -> A physical storage unit, e.g. hard drive or a partition on a hard drive.
+ - Volume group -> A storage pool that can consist on many PVs.
+ - Logical volume -> Like partitions on windows, utilize VG storage across PVs, can be resized at will while working.
+ - Mounting -> Associating storage (e.g. a LV) with a particular location in the directory tree.
+ - Creating LVs -> sudo lvcreate -L <size> -n <LVname> <VGname>
+ - Formatting LVs -> sudo mkfs.ext4 /dev/<VGname>/<LVname>
+ - Mounting LVS:
+				1. sudo mkdir -p /mnt/<LVname> -> Create directories, if needed.
+				2. sudo mount /dev/<VGname>/<LVname> /mnt/<LVname> -> Mount LV to a path.
+				3. sudo nano /etc/fstab -> Edit to make mounts persistent (automount at boot). See below.
+				4. /dev/<VGname>/<LVname> <mount path> ext4 defaults,nofail 0 0
+
+-- SSH --
+
+- Secure Socket Shell (SSH) is a network protocol that allows us to securely access a device over an
+unsecure network. Uses passwords, public key cryptography and data encryption.
+- Configure SSH -> sudo nano /etc/ssh/sshd_config
+- Disable using SSH as root -> PermitRootLogin no
+- Check SSH status -> sudo systemctl status ssh
+- Connect over SSH -> ssh -p <port> <username>@<ip>
+- Set up new SSH account -> ssh-keygen -> ssh-copy-id -i <keypath> -p <port> <user>@<ip> Adds all keys if no -i.
+
+-- UNCOMPLICATED FIREWALL (UFW) --
+
+- Previous gen firewalls only looked at packet headers (source and dest.). Next gen FWs also look at packet contents.
+- Change default policy to deny external traffic -> sudo ufw default deny
+- Allow traffic to a particular port -> sudo ufw allow <port>
+- Allow rate-limited traffic (block when >6 connection attempts in 30s) to port -> sudu ufw limit <port>
+- Enable UFW on system startup -> sudo UFW enable
+
+-- PASSWORD POLICY --
+1. Password expiry config -> sudo vi /etc/login.defs -> See pwquality man.
+2. Change password -> sudo passwd <username>
+3. Display password expiry information -> sudo chage -l <username>
+
+
+
+-- DEFENSE --
+- Please note that your virtual machine’s signature may be altered after your first evaluation. To solve this problem,
+you can duplicate your virtual machine or use save state.
+
+1. What is appArmor?
+2. What is SELinux?
+3. What is the difference between aptitude and apt?
+4. Set up a new SSH account!
+5. Create a new user and add it to a group!
+6. Explain how monitoring.sh works and interrupt it without modifying it. Take a look at cron!
+7. Explain extra service choice for website!
